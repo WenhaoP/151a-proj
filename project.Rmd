@@ -1,0 +1,20 @@
+# Introduction
+
+Intuitively speaking, it is obvious that vehicle CO2 emissions are highly dependent on the vehicle itself. In this report, we explore the factors that affect a vehicle's CO2 emissions. We can find information about the model, transmission fuel type/consumption, and CO2 emissions of a diverse variety of vehicles. In this report, we leverage linear regression to find potential linear relationships. We will also assess the effectiveness of using a linear regression model to predict CO2 emissions for a particular vehicle. Lastly, we will evaluate how such a model can be used to decide how to lower the CO2 emission of existing vehicles.
+
+# Data Description
+
+The dataset used is compiled over 7 years, and is taken from the Canadian Government's official open data website.
+
+1. Make: company of the vehicle [Categorical]
+2. Car Model [Categorical]
+3. Class of vehicle: describes the size of the vehicle depending on their utility, weight, and capacity [Categorical]
+4. Engine size: size of engine used in Litre [Numerical]
+5. Cylinders: number of cylinders in a vehicle [Numerical]
+6. Transmission: transmission type with number of gears [Categorical]
+7. Fuel type: type of fuel used [Categorical]
+8. Fuel consumption: Fuel consumption in city roads (L/100 km) [Numerical]
+9. Fuel consumption: Fuel consumption in highways (L/100 km) [Numerical]
+10. Fuel consumption combined: The combined fuel consumption (55% city, 45% highway) is shown in L/100 km [Numerical]
+11. Fuel consumption combined: The combined fuel consumption (55% city, 45% highway) is shown in mpg [Numerical]
+12. CO2 emissions: shown in g/mk [Numerical]
