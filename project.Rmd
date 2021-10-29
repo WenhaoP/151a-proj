@@ -7,7 +7,12 @@ library(tidyverse)
 # Randomly subsample CSV to 60000 records
 # df <- read_csv("data/US_births(2018).csv")
 # df.subsampled <- sample_n(df, 60000, replace = FALSE)
-# write.csv(df.subsampled, "data/US_births(2018)_subsampled.csv")
+# write.csv(df.subsampled, "data/US_births(2018)_subsampled.csv", row.names = FALSE)
+```
+
+
+```{r}
+df <- read_csv("data/US_births(2018)_subsampled.csv")
 ```
 
 # Introduction
