@@ -1,3 +1,15 @@
+```{r}
+library(dplyr)
+library(tidyverse)
+```
+
+```{r}
+# Randomly subsample CSV to 60000 records
+df <- read_csv("data/US_births(2018).csv")
+df.subsampled <- sample_n(df, 60000, replace = FALSE)
+write.csv(df.subsampled, "data/US_births(2018)_subsampled.csv")
+```
+
 # Introduction
 
 Intuitively speaking, it is obvious that vehicle CO2 emissions are highly dependent on the vehicle itself. In this report, we explore the factors that affect a vehicle's CO2 emissions. We can find information about the model, transmission fuel type/consumption, and CO2 emissions of a diverse variety of vehicles. In this report, we leverage linear regression to find potential linear relationships. We will also assess the effectiveness of using a linear regression model to predict CO2 emissions for a particular vehicle. Lastly, we will evaluate how such a model can be used to decide how to lower the CO2 emission of existing vehicles.
