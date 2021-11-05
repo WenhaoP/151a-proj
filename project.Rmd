@@ -6,9 +6,9 @@ library(ggplot2)
 
 ```{r}
 # Randomly subsample CSV to 100000 records
-df <- read_csv("data/US_births(2018).csv")
-df.subsampled <- sample_n(df, 100000, replace = FALSE)
-write.csv(df.subsampled, "data/US_births(2018)_subsampled.csv", row.names = FALSE)
+# df <- read_csv("data/US_births(2018).csv")
+# df.subsampled <- sample_n(df, 100000, replace = FALSE)
+# write.csv(df.subsampled, "data/US_births(2018)_subsampled.csv", row.names = FALSE)
 ```
 
 
