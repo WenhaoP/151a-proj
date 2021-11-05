@@ -1,18 +1,26 @@
 ```{r}
 library(dplyr)
 library(tidyverse)
+library(ggplot2)
 ```
 
 ```{r}
-# Randomly subsample CSV to 60000 records
-# df <- read_csv("data/US_births(2018).csv")
-# df.subsampled <- sample_n(df, 60000, replace = FALSE)
-# write.csv(df.subsampled, "data/US_births(2018)_subsampled.csv", row.names = FALSE)
+# Randomly subsample CSV to 100000 records
+df <- read_csv("data/US_births(2018).csv")
+df.subsampled <- sample_n(df, 100000, replace = FALSE)
+write.csv(df.subsampled, "data/US_births(2018)_subsampled.csv", row.names = FALSE)
 ```
 
 
 ```{r}
 df <- read_csv("data/US_births(2018)_subsampled.csv")
+df
+```
+
+```{r}
+model <- lm(DBWT ~ WTGAIN + SEX + PWgt_R + M_Ht_In + MAGER + BMI, data = df)
+# model <- lm(DBWT ~ ., data = df)
+summary(model)
 ```
 
 # Introduction
