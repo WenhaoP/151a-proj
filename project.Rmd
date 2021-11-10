@@ -83,10 +83,10 @@ We will apply the model diagnostic techniques to both inference and prediction d
 ## Model Interpretation & Prediction 
 After assessing our model, we will proceed to interpret our inference model to answer our first research question. Specifically, to infer the causal effect of an explanatory variable, we will highly rely on the value of its fitted coefficients. The methods to interpret the coefficients of quantitative and qualitative variables will be different. We may consider using standardized coefficients since some quantitative variables do not share the same scale or unit. Some explanatory variables may have a relatively more significant causal effect than others. However, if they are immutable, such as the mother’s race, we will exclude them from answering the first question. We will not compute or refer to the bootstrap coefficients since the size of our dataset is sufficiently large. 
 
-Finally, to answer the second research question, we will use our prediction model fitted on the training data to predict the test data. To assess the generalizability and predictability of our model, we will compare the training and test RMSEs.  A model of which the test RMSE is not much higher than its training RMSE will be considered not overfitting the training data.If we find out that our model is overfitting the training data, we will use the ridge regression with k-fold cross validation to select the hyperparameter and improve the performance of our model on the unseen data.  To assess the variability of the prediction, we will compute the prediction intervals of 5 test data points. 
+Finally, to answer the second research question, we will use our prediction model fitted on the training data to predict the test data. To assess the generalizability and predictability of our model, we will compare the training and test RMSEs.  A model of which the test RMSE is not much higher than its training RMSE will be considered not overfitting the training data. If we find out that our model is overfitting the training data, we will use the ridge regression with k-fold cross validation to select the hyperparameter and improve the performance of our model on the unseen data.  To assess the variability of the prediction, we will compute the prediction intervals of 5 test data points. 
 
 \newpage 
-# Appendix
+# Evidence of successfully loading the data
 ```{r ref.label = knitr::all_labels(), echo = TRUE, eval = FALSE}
 
 ```
