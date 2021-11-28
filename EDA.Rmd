@@ -13,5 +13,11 @@ data <- subset(data, PRECARE!=99 & CIG_0!=99 & BMI!=99.9 & PWgt_R!=999  & PREVIS
 ```
 
 ```{r}
+data$pregnancy.length <- 12*(data$DOB_YY - data$DLMP_YY) + (data$DOB_MM - data$DLMP_MM)
 data$WT.percent.gain <- data$WTGAIN / data$PWgt_R
+```
+
+
+```{r}
+head(data)
 ```
