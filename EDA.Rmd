@@ -10,7 +10,7 @@ nrow(data)
 ```{r}
 # dropping datapoints with missing valus
 colnames(data)
-data <- subset(data, PRECARE!=99 & CIG_0!=99 & BMI!=99.9 & PWgt_R!=999  & PREVIS!=99 & WTGAIN!=99 & DBWT!=9999 & PAY!=9 & FRACE6!=9 & MEDUC!=9 & FEDUC!=9)
+data <- subset(data, PRECARE!=99 & CIG_0!=99 & BMI!=99.9 & PWgt_R!=999  & PREVIS!=99 & WTGAIN!=99 & DBWT!=9999 & PAY!=9 & FRACE6!=9 & MEDUC!=9 & FEDUC!=9 & NO_RISKS!=9 & WTGAIN!=99 & FRACE6 !=9)
 ```
 
 ```{r}
@@ -22,4 +22,8 @@ data$WT.percent.gain <- data$WTGAIN / data$PWgt_R
 ```{r}
 # binarize CIG_0
 data$CIG_0_BIN <- ifelse(data$CIG_0 > 0,1,0)
+```
+
+```{r}
+head(data)
 ```
