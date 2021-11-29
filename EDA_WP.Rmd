@@ -44,7 +44,7 @@ ggplot(EDA_df, aes(x = MAGER, y = DBWT)) +
 ```{r}
 ggplot(EDA_df, aes(x = MAGER, y = DBWT)) +
   geom_point(position = "jitter", aes(colour = CIG_0_BIN), alpha = 0.5) +
-  geom_smooth(aes(colour = CIG_0_BIN))
+  geom_smooth(method = 'lm', aes(colour = CIG_0_BIN))
 ```
 Slightly negative slope for smoking mothers between `MAGER` and `DBWT`.
 
@@ -55,23 +55,18 @@ ggplot(EDA_df, aes(x = PRECARE, y = DBWT)) +
   geom_boxplot()
 ```
 
-Higher `PRECARE` has higher `DBWT`.
-
 ```{r}
-sum(EDA_df$PRECARE == 10)
+EDA_df %>% count(PRECARE) 
 ```
 
-```{r}
-ggplot(EDA_df, aes(x = PRECARE, y = DBWT)) +
-  geom_boxplot(aes(fill = NO_RISKS))
-```
-
-`NO_RISKS` matters more for higher `PRECARE`. 
+No `PRECARE` has significant `DBWT`.
 
 ```{r}
 ggplot(EDA_df, aes(x = PRECARE, y = DBWT)) +
   geom_boxplot(aes(fill = SEX))
 ```
+
+`SEX` matters more for higher `PRECARE` (start prenatal care later). 
 
 # CIG_0
 
@@ -103,8 +98,17 @@ ggplot(EDA_df, aes(x = BMI, y = DBWT)) +
 
 ```{r}
 ggplot(EDA_df, aes(x = BMI, y = DBWT)) +
-  geom_point(aes(colour = FRACE6), alpha = 0.5) +
-  geom_smooth(aes(colour = FRACE6))
+  geom_point(aes(colour = PAY), alpha = 0.5) +
+  geom_smooth(method = 'lm', aes(colour = PAY))
+```
+```{r}
+ggplot(EDA_df, aes(x = BMI, y = DBWT)) +
+  geom_point(aes(colour = PRECARE), alpha = 0.5) +
+  geom_smooth(aes(colour = PRECARE))
+```
+
+```{r}
+EDA_df %>% count(PAY)
 ```
 
 # WTGAIN.percentage:
@@ -118,6 +122,58 @@ ggplot(EDA_df, aes(x = WT.percent.gain, y = DBWT)) +
 ```{r}
 ggplot(EDA_df, aes(x = WT.percent.gain, y = DBWT)) +
   geom_point(aes(colour = PAY), alpha = 0.5) +
-  geom_smooth(aes(colour = PAY))
+  geom_smooth(method = 'lm', aes(colour = PAY))
 ```
 
+```{r}
+ggplot(EDA_df, aes(x = WT.percent.gain, y = DBWT)) +
+  geom_point(aes(colour = MEDUC), alpha = 0.5) +
+  geom_smooth(method = "lm",aes(colour = MEDUC))
+```
+
+# SEX
+
+```{r}
+ggplot(EDA_df, aes(x = SEX, y = DBWT)) +
+  geom_boxplot()
+```
+
+```{r}
+ggplot(EDA_df, aes(x = SEX, y = DBWT)) +
+  geom_boxplot(aes(fill = PRECARE))
+```
+
+`PRECARE` matters more in male babies.
+
+# PREVIS
+
+```{r}
+ggplot(EDA_df, aes(x = PREVIS, y = DBWT)) +
+  geom_point(position = "jitter") +
+  geom_smooth()
+```
+
+```{r}
+ggplot(EDA_df, aes(x = PREVIS, y = DBWT)) +
+  geom_point(position = "jitter", aes(colour = PRECARE), alpha = 0.5) +
+  geom_smooth(method = "lm", aes(colour = PRECARE))
+```
+
+```{r}
+ggplot(EDA_df, aes(x = PREVIS, y = DBWT)) +
+  geom_point(position = "jitter", aes(colour = PAY), alpha = 0.5) +
+  geom_smooth(method = "lm", aes(colour = PAY))
+```
+
+```{r}
+ggplot(EDA_df, aes(x = PREVIS, y = DBWT)) +
+  geom_point(position = "jitter", aes(colour = FEDUC), alpha = 0.5) +
+  geom_smooth(method = "lm", aes(colour = FEDUC))
+
+ggplot(EDA_df, aes(x = PREVIS, y = DBWT)) +
+  geom_point(position = "jitter", aes(colour = MEDUC), alpha = 0.5) +
+  geom_smooth(method = "lm", aes(colour = MEDUC))
+
+EDA_df %>% count(FEDUC)
+EDA_df %>% count(MEDUC)
+```

@@ -47,6 +47,11 @@ clean_birth$pregnancy.length[clean_birth$pregnancy.length > 10] <- 99
 clean_birth$pregnancy.length <- factor(clean_birth$pregnancy.length)
 levels(clean_birth$pregnancy.length) <- c("Early", "8", "9", "10", "Late")
 
+# recode PRECARE
+clean_birth$PRECARE[clean_birth$PRECARE < 4 & clean_birth$PRECARE > 0] <- 1
+clean_birth$PRECARE[clean_birth$PRECARE < 7 & clean_birth$PRECARE > 3] <- 2
+clean_birth$PRECARE[ clean_birth$PRECARE > 6] <- 3
+
 # compute percentage weight gain
 clean_birth$WT.percent.gain <- clean_birth$WTGAIN / clean_birth$PWgt_R
 
@@ -56,11 +61,34 @@ clean_birth$CIG_0_BIN <- ifelse(clean_birth$CIG_0 > 0, 1,0)
 
 ```{r}
 count <- clean_birth %>%
+  group_by(PRECARE) %>%
+  summarise(n = n())
+
+count
+```
+
+```{r}
+count <- clean_birth %>%
   group_by(pregnancy.length) %>%
   summarise(n = n())
 
 count
 ```
+
+```{r}
+# Factorize categorical features
+clean_birth$CIG_0_BIN <- factor(clean_birth$CIG_0_BIN)
+clean_birth$PRECARE <- factor(clean_birth$PRECARE)
+clean_birth$SEX <- factor(clean_birth$SEX)
+clean_birth$RESTATUS <- factor(clean_birth$RESTATUS)
+clean_birth$PAY <- factor(clean_birth$PAY)
+clean_birth$NO_RISKS <- factor(clean_birth$NO_RISKS)
+clean_birth$MRAVE6 <- factor(clean_birth$MRAVE6)
+clean_birth$FRACE6  <- factor(clean_birth$FRACE6)
+clean_birth$MEDUC <- factor(clean_birth$MEDUC)
+clean_birth$FEDUC <- factor(clean_birth$FEDUC)
+```
+
 
 ```{r}
 set.seed(151)
