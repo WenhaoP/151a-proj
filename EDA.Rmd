@@ -24,6 +24,52 @@ data$WT.percent.gain <- data$WTGAIN / data$PWgt_R
 data$CIG_0_BIN <- ifelse(data$CIG_0 > 0,1,0)
 ```
 
+EDA
+NO_RISKS (9)
+MRAVE6[sic] — Mother’s race recode 6
+FRACE6 — Father’s race recode 6 (9)
+MEDUC (9)
+FEDUC (9)
+
+
 ```{r}
-head(data)
+library(ggplot2)
+```
+
+```{r}
+ggplot(data, aes(x=as.factor(NO_RISKS))) + geom_bar()
+boxplot(DBWT ~ as.factor(NO_RISKS), data, xlab = "Birth weight vs. NO_RISKS")
+```
+
+```{r}
+ggplot(data, aes(x=as.factor(MRAVE6))) + geom_bar()
+boxplot(DBWT ~ as.factor(MRAVE6), data, xlab = "Birth weight vs. Mother's Race")
+```
+
+
+```{r}
+ggplot(data, aes(x=as.factor(FRACE6))) + geom_bar()
+boxplot(DBWT ~ as.factor(FRACE6), data, xlab = "Birth weight vs. Father's Race")
+```
+
+
+
+```{r}
+ggplot(data, aes(x=as.factor(MEDUC))) + geom_bar()
+boxplot(DBWT ~ as.factor(MEDUC), data, xlab = "Birth weight vs.Mother's Education")
+```
+
+```{r}
+ggplot(data, aes(x=as.factor(FEDUC))) + geom_bar()
+boxplot(DBWT ~ as.factor(FEDUC), data, xlab = "Birth weight vs. Father's Education")
+```
+
+```{r}
+ggplot(data, aes(x=as.factor(RESTATUS))) + geom_bar()
+boxplot(DBWT ~ as.factor(RESTATUS), data, xlab = "Birth weight vs. Residential Status")
+```
+
+```{r}
+ggplot(data, aes(x=as.factor(PAY))) + geom_bar()
+boxplot(DBWT ~ as.factor(PAY), data, xlab = "Birth weight vs. Payment Method")
 ```
