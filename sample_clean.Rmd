@@ -1,0 +1,75 @@
+```{r}
+library(dplyr)
+library(ggplot2)
+```
+
+```{r}
+birth <- read.csv("data/US_births(2018).csv")
+```
+
+```{r}
+head(birth)
+nrow(birth)
+```
+
+```{r}
+# Remove missing values
+
+# remove missing values in the response variable
+clean_birth <- subset(birth, DBWT != 9999)
+
+# remove missing values in the features for EDA
+clean_birth <- subset(clean_birth, PRECARE != 99 & CIG_0 != 99 & BMI != 99.9 
+               & PREVIS != 99 & MRAVE6 != 9 & PAY != 9
+               & FRACE6 != 9 & MEDUC != 9 & FEDUC != 9 
+               & NO_RISKS != 9)
+
+# remove missing values in the features for computing pregnancy length
+clean_birth <- subset(clean_birth, DLMP_YY != 9999 & DLMP_MM != 99)
+
+# remove missing values in the features for computing weight gain percentage
+clean_birth <- subset(clean_birth, PWgt_R != 999  & WTGAIN != 99)
+```
+
+```{r}
+nrow(clean_birth)
+```
+
+```{r}
+# Feature engineering
+
+# estimate pregnancy length
+clean_birth$pregnancy.length <- 12*(clean_birth$DOB_YY - clean_birth$DLMP_YY) + (clean_birth$DOB_MM - clean_birth$DLMP_MM)
+
+# categorize and cap pregnancy length
+clean_birth$pregnancy.length[clean_birth$pregnancy.length < 8] <- -1
+clean_birth$pregnancy.length[clean_birth$pregnancy.length > 10] <- 99
+clean_birth$pregnancy.length <- factor(clean_birth$pregnancy.length)
+levels(clean_birth$pregnancy.length) <- c("Early", "8", "9", "10", "Late")
+
+# compute percentage weight gain
+clean_birth$WT.percent.gain <- clean_birth$WTGAIN / clean_birth$PWgt_R
+
+# binarize CIG_0
+clean_birth$CIG_0_BIN <- ifelse(clean_birth$CIG_0 > 0, 1,0)
+```
+
+```{r}
+count <- clean_birth %>%
+  group_by(pregnancy.length) %>%
+  summarise(n = n())
+
+count
+```
+
+```{r}
+set.seed(151)
+EDA_size = 3000
+EDA_df <- clean_birth %>% slice_sample(n = EDA_size, replace = TRUE)
+```
+
+```{r}
+write.csv(EDA_df, "data/EDA.csv")
+```
+
+
