@@ -78,7 +78,7 @@ clean_birth$CIG_0 <- ifelse(clean_birth$CIG_0 > 0, TRUE, FALSE)
 # binarize PRIORDEAD
 clean_birth$PRIORDEAD <- ifelse(clean_birth$PRIORDEAD > 0, TRUE, FALSE)
 
-# binarize PRIORDEAD
+# binarize PRIORTERM
 clean_birth$PRIORTERM <- ifelse(clean_birth$PRIORTERM > 0, TRUE, FALSE)
 
 # binarize PRIORLIVE
