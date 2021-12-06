@@ -5,7 +5,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
@@ -75,13 +75,12 @@ for_BIC.cv = mean((residuals(forward.BIC) / (1 - hatvalues(forward.BIC))) ^ 2)
 back_BIC.cv = mean((residuals(backward.BIC) / (1 - hatvalues(backward.BIC))) ^ 2)
 which.min(c(for_AIC.cv, back_AIC.cv, for_BIC.cv, back_BIC.cv))
 ```
-```{r}
-backward.AIC$model
-forward.AIC$model
-```
 
 ```{r}
 # Add interaction terms by F-test
 
+best_model <- backward.AIC
 ```
+
+
 

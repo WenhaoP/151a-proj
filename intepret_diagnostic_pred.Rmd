@@ -1,0 +1,83 @@
+---
+title: "Untitled"
+author: "Wenhao Pan"
+date: "12/6/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(dplyr)
+library(ggplot2)
+train <- read.csv("data/Train.csv")
+test <- read.csv("data/test.csv")
+head(train)
+```
+
+```{r}
+# Factorize categorical variables
+fac_train <- train %>% mutate_if(is.character, as.factor)
+fac_train <- fac_train %>% mutate_if(is.logical, as.factor)
+fac_train <- fac_train %>% mutate(ATTEND = factor(ATTEND), BFACIL = factor(BFACIL), 
+                                  DMAR = factor(DMAR), FEDUC = factor(FEDUC), 
+                                  FRACE6 = factor(FRACE6), MBSTATE_REC = factor(MBSTATE_REC),
+                                  MEDUC = factor(MEDUC), MRAVE6 = factor(MRAVE6), 
+                                  NO_INFEC = factor(NO_INFEC),NO_MMORB = factor(NO_MMORB), 
+                                  NO_RISKS = factor(NO_RISKS), PAY_REC = factor(PAY_REC),
+                                  PRECARE = factor(PRECARE), RDMETH_REC = factor(RDMETH_REC),
+                                  RESTATUS = factor(RESTATUS))
+
+fac_test <- test %>% mutate_if(is.character, as.factor)
+fac_test <- fac_test %>% mutate_if(is.logical, as.factor)
+fac_test <- fac_test %>% mutate(ATTEND = factor(ATTEND), BFACIL = factor(BFACIL), 
+                                  DMAR = factor(DMAR), FEDUC = factor(FEDUC), 
+                                  FRACE6 = factor(FRACE6), MBSTATE_REC = factor(MBSTATE_REC),
+                                  MEDUC = factor(MEDUC), MRAVE6 = factor(MRAVE6), 
+                                  NO_INFEC = factor(NO_INFEC),NO_MMORB = factor(NO_MMORB), 
+                                  NO_RISKS = factor(NO_RISKS), PAY_REC = factor(PAY_REC),
+                                  PRECARE = factor(PRECARE), RDMETH_REC = factor(RDMETH_REC),
+                                  RESTATUS = factor(RESTATUS))
+
+```
+
+```{r}
+best_model.train <- lm(formula = DBWT ~ ATTEND + BFACIL + BMI + CIG_0 + DMAR + FAGECOMB + 
+    FEDUC + FRACE6 + LD_INDL + MBSTATE_REC + MEDUC + MRAVE6 + 
+    M_Ht_In + NO_INFEC + NO_MMORB + NO_RISKS + PAY_REC + PRECARE + 
+    PREVIS + PRIORLIVE + RDMETH_REC + RESTATUS + SEX + PREG_LEN + 
+    WTGAIN_PER, data = fac_train)
+
+best_model.test <- lm(formula = DBWT ~ ATTEND + BFACIL + BMI + CIG_0 + DMAR + FAGECOMB + 
+    FEDUC + FRACE6 + LD_INDL + MBSTATE_REC + MEDUC + MRAVE6 + 
+    M_Ht_In + NO_INFEC + NO_MMORB + NO_RISKS + PAY_REC + PRECARE + 
+    PREVIS + PRIORLIVE + RDMETH_REC + RESTATUS + SEX + PREG_LEN + 
+    WTGAIN_PER, data = fac_test)
+```
+
+```{r}
+# Model interpretation 
+summary(best_model.test)
+```
+
+```{r}
+# Model diagnostic
+plot(best_model.train)
+```
+
+```{r}
+# Model Prediction
+MSE.train <- mean(best_model.train$residuals ^ 2)
+pred.test <- predict(best_model.train, fac_test)
+MSE.test <- mean((pred.test - fac_test$DBWT) ^ 2)
+MSE.train
+MSE.test
+
+true.test <- fac_test$DBWT
+test.pred.df <- data.frame(cbind(true.test, pred.test))
+ggplot(test.pred.df, aes(x = true.test, y = pred.test)) +
+  geom_point()
+```
+
