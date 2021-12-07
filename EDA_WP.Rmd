@@ -54,6 +54,15 @@ Slightly negative slope for smoking mothers between `MAGER` and `DBWT`.
 ggplot(EDA_df, aes(x = PRECARE, y = DBWT)) +
   geom_boxplot()
 ```
+Observing that the most important difference lies between `PRECARE` of 0 and the other status of `PRECARE`, we binarize `PRECARE` for downstream analysis.
+
+```{r}
+# Binarizing PRECARE
+EDA_df$PRECARE_BIN <- ifelse(EDA_df$PRECARE == 0, FALSE, TRUE)
+ggplot(EDA_df, aes(x = PRECARE_BIN, y = DBWT)) +
+  geom_boxplot()
+```
+
 
 ```{r}
 EDA_df %>% count(PRECARE) 
@@ -62,13 +71,13 @@ EDA_df %>% count(PRECARE)
 No `PRECARE` has significant `DBWT`.
 
 ```{r}
-ggplot(EDA_df, aes(x = PRECARE, y = DBWT)) +
+ggplot(EDA_df, aes(x = PRECARE_BIN, y = DBWT)) +
   geom_boxplot(aes(fill = SEX))
 ```
 
 `SEX` matters more for higher `PRECARE` (start prenatal care later). 
 
-# CIG_0
+# CIG_0_BIN
 
 ```{r}
 ggplot(EDA_df, aes(x = CIG_0_BIN, y = DBWT)) +
@@ -79,7 +88,7 @@ No smoking leads to higher `DBWT`.
 
 ```{r}
 ggplot(EDA_df, aes(x = CIG_0_BIN, y = DBWT)) +
-  geom_boxplot(aes(fill = PRECARE))
+  geom_boxplot(aes(fill = PRECARE_BIN))
 ```
 
 `PRECARE` difference is more obvious in smoking mothers. But it might due to the relative smaller number of smoking mothers.
@@ -103,8 +112,8 @@ ggplot(EDA_df, aes(x = BMI, y = DBWT)) +
 ```
 ```{r}
 ggplot(EDA_df, aes(x = BMI, y = DBWT)) +
-  geom_point(aes(colour = PRECARE), alpha = 0.5) +
-  geom_smooth(aes(colour = PRECARE))
+  geom_point(aes(colour = PRECARE_BIN), alpha = 0.5) +
+  geom_smooth(aes(colour = PRECARE_BIN))
 ```
 
 ```{r}
@@ -140,7 +149,7 @@ ggplot(EDA_df, aes(x = SEX, y = DBWT)) +
 
 ```{r}
 ggplot(EDA_df, aes(x = SEX, y = DBWT)) +
-  geom_boxplot(aes(fill = PRECARE))
+  geom_boxplot(aes(fill = PRECARE_BIN))
 ```
 
 `PRECARE` matters more in male babies.
@@ -155,8 +164,8 @@ ggplot(EDA_df, aes(x = PREVIS, y = DBWT)) +
 
 ```{r}
 ggplot(EDA_df, aes(x = PREVIS, y = DBWT)) +
-  geom_point(position = "jitter", aes(colour = PRECARE), alpha = 0.5) +
-  geom_smooth(method = "lm", aes(colour = PRECARE))
+  geom_point(position = "jitter", aes(colour = PRECARE_BIN), alpha = 0.5) +
+  geom_smooth(method = "lm", aes(colour = PRECARE_BIN))
 ```
 
 ```{r}
