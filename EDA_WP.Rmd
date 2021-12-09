@@ -58,7 +58,7 @@ Observing that the most important difference lies between `PRECARE` of 0 and the
 
 ```{r}
 # Binarizing PRECARE
-EDA_df$PRECARE_BIN <- ifelse(EDA_df$PRECARE == 0, FALSE, TRUE)
+EDA_df$PRECARE_BIN <- factor(ifelse(EDA_df$PRECARE == 0, FALSE, TRUE))
 ggplot(EDA_df, aes(x = PRECARE_BIN, y = DBWT)) +
   geom_boxplot()
 ```
@@ -186,3 +186,36 @@ ggplot(EDA_df, aes(x = PREVIS, y = DBWT)) +
 EDA_df %>% count(FEDUC)
 EDA_df %>% count(MEDUC)
 ```
+
+
+```{r}
+cols_of_interest <- c("MAGER", "PRECARE_BIN", "CIG_0_BIN", "BMI", "WT.percent.gain", "SEX", "PREVIS", "pregnancy.length", "MRAVE6", "FRACE6", "MEDUC", "FEDUC")
+
+dtypes <- sapply(EDA_df, class)
+
+for (A in cols_of_interest) {
+  for (B in cols_of_interest) {
+    if (A == B) {
+      next
+    } 
+    if (dtypes[A] == "factor" & dtypes[B] == "factor") {
+      fig <- ggplot(EDA_df, aes_string(x = A, y = "DBWT")) + geom_boxplot(aes_string(fill = B))
+    } else if (dtypes[B] == "factor") {
+      fig <- ggplot(EDA_df, aes_string(x = A, y = "DBWT")) +
+        geom_point(position = "jitter", aes_string(colour = B), alpha = 0.5) +
+        geom_smooth(method = "lm", aes_string(colour = B))
+      # coplot(formula(paste("DBWT ~", A, '|', B)), data = EDA_df)
+    } else if (dtypes[A] == "factor") {
+      # coplot(formula(paste("DBWT ~", B, '|', A)), data = EDA_df)
+      fig <- ggplot(EDA_df, aes_string(x = B, y = "DBWT")) +
+        geom_point(position = "jitter", aes_string(colour = A), alpha = 0.5) +
+        geom_smooth(method = "lm", aes_string(colour = A))
+    } else {
+      # Both are numeric, don't look at interactions here
+      next
+    }
+    print(fig)
+  }
+}
+```
+
