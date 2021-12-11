@@ -28,6 +28,7 @@ fac_train <- fac_train %>% mutate(ATTEND = factor(ATTEND), BFACIL = factor(BFACI
                                   RESTATUS = factor(RESTATUS))
 head(fac_train)
 ```
+
 ```{r}
 biggest.model = lm(DBWT ~ ., data = fac_train)
 summary(biggest.model)

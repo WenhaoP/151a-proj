@@ -1,0 +1,370 @@
+---
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(MASS)
+```
+
+```{r}
+birth <- read.csv("data/US_births(2018).csv")
+```
+
+```{r}
+head(birth)
+nrow(birth)
+```
+
+```{r}
+# Remove missing values
+
+# remove missing values in the response variable
+clean_birth <- subset(birth, DBWT != 9999)
+
+# remove missing values in the features to be considered for adding interactions
+clean_birth <- subset(clean_birth, PRECARE != 99 & CIG_0 != 99 & BMI != 99.9 
+               & PREVIS != 99 & MRAVE6 != 9 & PAY_REC != 9
+               & FRACE6 != 9 & MEDUC != 9 & FEDUC != 9 
+               & NO_RISKS != 9)
+
+# remove missing values in the features not to be considered for adding interactions
+clean_birth <- subset(clean_birth, ATTEND != 9 & BFACIL != 9 & FAGECOMB != 99 
+               & RF_CESAR != "U" & LD_INDL != "U" & MBSTATE_REC != 3
+               & M_Ht_In != 99 & NO_INFEC != 9 & NO_MMORB != 9 
+               & PRIORLIVE != 99 & PRIORTERM != 99 & RDMETH_REC != 9)
+
+clean_birth <- clean_birth %>% filter(!is.na(DMAR))
+
+# remove missing values in the features for feature engineering
+clean_birth <- subset(clean_birth, DLMP_YY != 9999 & DLMP_MM != 99)
+clean_birth <- subset(clean_birth, PWgt_R != 999  & WTGAIN != 99)
+clean_birth <- subset(clean_birth, ILLB_R != 999)
+```
+
+```{r}
+nrow(clean_birth)
+```
+
+```{r}
+# Feature engineering
+
+# estimate pregnancy length
+clean_birth$PREG_LEN <- 12*(2018 - clean_birth$DLMP_YY) +
+                        (clean_birth$DOB_MM - clean_birth$DLMP_MM)
+
+# categorize and cap pregnancy length
+clean_birth$PREG_LEN[clean_birth$PREG_LEN < 8] <- -1
+clean_birth$PREG_LEN[clean_birth$PREG_LEN > 10] <- 99
+clean_birth$PREG_LEN <- factor(clean_birth$PREG_LEN)
+levels(clean_birth$PREG_LEN) <- c("Early", "8", "9", "10", "Late")
+
+# recode PRECARE
+clean_birth$PRECARE[clean_birth$PRECARE < 4 & clean_birth$PRECARE > 0] <- 1
+clean_birth$PRECARE[clean_birth$PRECARE < 7 & clean_birth$PRECARE > 3] <- 2
+clean_birth$PRECARE[ clean_birth$PRECARE > 6] <- 3
+
+# compute percentage weight gain
+clean_birth$WTGAIN_PER <- clean_birth$WTGAIN / clean_birth$PWgt_R
+
+# binarize CIG_0
+clean_birth$CIG_0 <- ifelse(clean_birth$CIG_0 > 0, TRUE, FALSE)
+
+# binarize PRIORDEAD
+clean_birth$PRIORDEAD <- ifelse(clean_birth$PRIORDEAD > 0, TRUE, FALSE)
+
+# binarize PRIORTERM
+clean_birth$PRIORTERM <- ifelse(clean_birth$PRIORTERM > 0, TRUE, FALSE)
+
+# binarize PRIORLIVE
+clean_birth$PRIORLIVE <- ifelse(clean_birth$PRIORLIVE > 0, TRUE, FALSE)
+
+# compute first time live birth
+clean_birth$FIRST_BIRTH <- ifelse(clean_birth$ILLB_R == 888, TRUE, FALSE)
+```
+
+```{r}
+# Reduce the dimensionality of the dataset
+
+# drop columns where >99% entries are the same
+clean_birth <- clean_birth %>% dplyr::select(!c(DOB_YY, IMP_SEX, IP_GON, MAGE_IMPFLG, 
+                                   MAR_IMP, MM_AICU, MTRAN))
+
+# drop redundant columns due to feature engineering
+clean_birth <- clean_birth %>% dplyr::select(!c(WTGAIN, PWgt_R, DWgt_R, DOB_MM, 
+                                   DOB_WK, DOB_TT, DOB_MM, DLMP_YY,
+                                   DLMP_MM, PAY, MHISPX, MRACE15,
+                                   MRACE31, MRACEIMP, FHISPX, FRACE15,
+                                   FRACE31, RF_CESARN, ILOP_R, ILP_R, ILLB_R))
+```
+
+```{r, eval=FALSE}
+# write.csv(clean_birth, "data/clean_birth.csv", row.names = FALSE)
+```
+
+```{r}
+# Factorize categorical variables
+clean_birth <- clean_birth %>% mutate_if(is.character, as.factor)
+clean_birth <- clean_birth %>% mutate_if(is.logical, as.factor)
+clean_birth <- clean_birth %>% mutate(ATTEND = factor(ATTEND), BFACIL = factor(BFACIL), 
+                                  DMAR = factor(DMAR), FEDUC = factor(FEDUC), 
+                                  FRACE6 = factor(FRACE6), MBSTATE_REC = factor(MBSTATE_REC),
+                                  MEDUC = factor(MEDUC), MRAVE6 = factor(MRAVE6), 
+                                  NO_INFEC = factor(NO_INFEC),NO_MMORB = factor(NO_MMORB), 
+                                  NO_RISKS = factor(NO_RISKS), PAY_REC = factor(PAY_REC),
+                                  PRECARE = factor(PRECARE), RDMETH_REC = factor(RDMETH_REC),
+                                  RESTATUS = factor(RESTATUS))
+```
+
+
+```{r}
+# Subsample datasets
+
+set.seed(151)
+EDA_size = 3000
+Train_size = 100000
+Test_size = 100000
+EDA_df <- clean_birth %>% slice_sample(n = EDA_size, replace = TRUE)
+Train <- clean_birth %>% slice_sample(n = Train_size, replace = TRUE)
+Test <- clean_birth %>% slice_sample(n = Test_size, replace = TRUE)
+```
+
+```{r}
+# EDA
+# TODO
+```
+
+```{r}
+# Second time feature engineering from EDA
+
+# Binarize PRECARE
+EDA_df$PRECARE <- ifelse(EDA_df$PRECARE != 0, TRUE, FALSE)
+Train$PRECARE <- ifelse(Train$PRECARE != 0, TRUE, FALSE)
+Test$PRECARE <- ifelse(Test$PRECARE != 0, TRUE, FALSE)
+```
+
+
+```{r, eval=FALSE}
+# write.csv(EDA_df, "data/EDA.csv", row.names = FALSE)
+# write.csv(Train, "data/Train.csv", row.names = FALSE)
+# write.csv(Test, "data/Test.csv", row.names = FALSE)
+```
+
+```{r, eval=FALSE}
+# Model Selection
+
+biggest.model <- lm(DBWT ~ ., data = Train)
+# summary(biggest.model)
+
+# Remove the columns causing singularity
+Train <- Train %>% dplyr::select(!c(RF_CESAR))
+biggest.model <- lm(DBWT ~ ., data = Train)
+min.model <- lm(DBWT ~ 1, data = Train)
+# summary(biggest.model)
+# Forward selection with BIC
+forward.BIC = step(min.model, direction="forward", scope = formula(biggest.model),
+                   k = log(nrow(Train)), trace = 0)
+
+# Backward selection with BIC
+backward.BIC = step(biggest.model, direction="backward", 
+                 k = log(nrow(Train)), trace = 0)
+
+# Forward selection with AIC
+forward.AIC = step(min.model, direction="forward", scope = formula(biggest.model),
+                 k = 2, trace = 0)
+
+# Backward selection with AIC
+backward.AIC = step(biggest.model, direction="backward", 
+                 k = 2, trace = 0)
+```
+
+```{r, eval=FALSE}
+# Compute the leave-one-out cross-validation errors
+for_AIC.cv = mean((residuals(forward.AIC) / (1 - hatvalues(forward.AIC))) ^ 2)
+back_AIC.cv = mean((residuals(backward.AIC) / (1 - hatvalues(backward.AIC))) ^ 2)
+for_BIC.cv = mean((residuals(forward.BIC) / (1 - hatvalues(forward.BIC))) ^ 2)
+back_BIC.cv = mean((residuals(backward.BIC) / (1 - hatvalues(backward.BIC))) ^ 2)
+which.min(c(for_AIC.cv, back_AIC.cv, for_BIC.cv, back_BIC.cv))
+```
+
+```{r, eval=FALSE}
+# Add interaction terms by F-test
+full.lm <- lm(DBWT ~ PREG_LEN + M_Ht_In + MRAVE6 + SEX + BMI + WTGAIN_PER + 
+    PRIORLIVE + CIG_0 + NO_RISKS + RDMETH_REC + PREVIS + ATTEND + 
+    MBSTATE_REC + FRACE6 + PAY_REC + LD_INDL + FEDUC + NO_MMORB + 
+    BFACIL + FAGECOMB + NO_INFEC + RESTATUS + MEDUC + PRECARE + 
+    DMAR + BMI * PRECARE + WTGAIN_PER * PRECARE + PRECARE * MEDUC +
+    PREVIS * PREG_LEN + PREG_LEN * MEDUC + PRECARE * CIG_0 + CIG_0 * SEX +
+    PRECARE * PREG_LEN + CIG_0 * PREG_LEN, data = Train)
+
+no_BMI_PRECARE <- lm(DBWT ~ PREG_LEN + M_Ht_In + MRAVE6 + SEX + BMI + WTGAIN_PER + 
+    PRIORLIVE + CIG_0 + NO_RISKS + RDMETH_REC + PREVIS + ATTEND + 
+    MBSTATE_REC + FRACE6 + PAY_REC + LD_INDL + FEDUC + NO_MMORB + 
+    BFACIL + FAGECOMB + NO_INFEC + RESTATUS + MEDUC + PRECARE + 
+    DMAR  + WTGAIN_PER * PRECARE + PRECARE * MEDUC +
+    PREVIS * PREG_LEN + PREG_LEN * MEDUC + PRECARE * CIG_0 + CIG_0 * SEX +
+    PRECARE * PREG_LEN + CIG_0 * PREG_LEN, data = Train)
+
+no_WTGAIN_PER_PRECARE <- lm(DBWT ~ PREG_LEN + M_Ht_In + MRAVE6 + SEX + BMI + WTGAIN_PER + 
+    PRIORLIVE + CIG_0 + NO_RISKS + RDMETH_REC + PREVIS + ATTEND + 
+    MBSTATE_REC + FRACE6 + PAY_REC + LD_INDL + FEDUC + NO_MMORB + 
+    BFACIL + FAGECOMB + NO_INFEC + RESTATUS + MEDUC + PRECARE + 
+    DMAR + BMI * PRECARE +  PRECARE * MEDUC +
+    PREVIS * PREG_LEN + PREG_LEN * MEDUC + PRECARE * CIG_0 + CIG_0 * SEX +
+    PRECARE * PREG_LEN + CIG_0 * PREG_LEN, data = Train)
+
+no_PRECARE_MEDUC <- lm(DBWT ~ PREG_LEN + M_Ht_In + MRAVE6 + SEX + BMI + WTGAIN_PER + 
+    PRIORLIVE + CIG_0 + NO_RISKS + RDMETH_REC + PREVIS + ATTEND + 
+    MBSTATE_REC + FRACE6 + PAY_REC + LD_INDL + FEDUC + NO_MMORB + 
+    BFACIL + FAGECOMB + NO_INFEC + RESTATUS + MEDUC + PRECARE + 
+    DMAR + BMI * PRECARE + WTGAIN_PER * PRECARE +
+    PREVIS * PREG_LEN + PREG_LEN * MEDUC + PRECARE * CIG_0 + CIG_0 * SEX +
+    PRECARE * PREG_LEN + CIG_0 * PREG_LEN, data = Train)
+
+no_PREVIS_PREG_LEN <- lm(DBWT ~ PREG_LEN + M_Ht_In + MRAVE6 + SEX + BMI + WTGAIN_PER + 
+    PRIORLIVE + CIG_0 + NO_RISKS + RDMETH_REC + PREVIS + ATTEND + 
+    MBSTATE_REC + FRACE6 + PAY_REC + LD_INDL + FEDUC + NO_MMORB + 
+    BFACIL + FAGECOMB + NO_INFEC + RESTATUS + MEDUC + PRECARE + 
+    DMAR + BMI * PRECARE + WTGAIN_PER * PRECARE + PRECARE * MEDUC +
+    PREG_LEN * MEDUC + PRECARE * CIG_0 + CIG_0 * SEX +
+    PRECARE * PREG_LEN + CIG_0 * PREG_LEN, data = Train)
+
+no_PREG_LEN_MEDUC <- lm(DBWT ~ PREG_LEN + M_Ht_In + MRAVE6 + SEX + BMI + WTGAIN_PER + 
+    PRIORLIVE + CIG_0 + NO_RISKS + RDMETH_REC + PREVIS + ATTEND + 
+    MBSTATE_REC + FRACE6 + PAY_REC + LD_INDL + FEDUC + NO_MMORB + 
+    BFACIL + FAGECOMB + NO_INFEC + RESTATUS + MEDUC + PRECARE + 
+    DMAR + BMI * PRECARE + WTGAIN_PER * PRECARE + PRECARE * MEDUC +
+    PREVIS * PREG_LEN + PRECARE * CIG_0 + CIG_0 * SEX +
+    PRECARE * PREG_LEN + CIG_0 * PREG_LEN, data = Train)
+
+no_PRECARE_CIG_0 <- lm(DBWT ~ PREG_LEN + M_Ht_In + MRAVE6 + SEX + BMI + WTGAIN_PER + 
+    PRIORLIVE + CIG_0 + NO_RISKS + RDMETH_REC + PREVIS + ATTEND + 
+    MBSTATE_REC + FRACE6 + PAY_REC + LD_INDL + FEDUC + NO_MMORB + 
+    BFACIL + FAGECOMB + NO_INFEC + RESTATUS + MEDUC + PRECARE + 
+    DMAR + BMI * PRECARE + WTGAIN_PER * PRECARE + PRECARE * MEDUC +
+    PREVIS * PREG_LEN + PREG_LEN * MEDUC + CIG_0 * SEX +
+    PRECARE * PREG_LEN + CIG_0 * PREG_LEN, data = Train)
+
+no_CIG_0_SEX <- lm(DBWT ~ PREG_LEN + M_Ht_In + MRAVE6 + SEX + BMI + WTGAIN_PER + 
+    PRIORLIVE + CIG_0 + NO_RISKS + RDMETH_REC + PREVIS + ATTEND + 
+    MBSTATE_REC + FRACE6 + PAY_REC + LD_INDL + FEDUC + NO_MMORB + 
+    BFACIL + FAGECOMB + NO_INFEC + RESTATUS + MEDUC + PRECARE + 
+    DMAR + BMI * PRECARE + WTGAIN_PER * PRECARE + PRECARE * MEDUC +
+    PREVIS * PREG_LEN + PREG_LEN * MEDUC + PRECARE * CIG_0 +
+    PRECARE * PREG_LEN + CIG_0 * PREG_LEN, data = Train)
+
+no_PRECARE_PREG_LEN <- lm(DBWT ~ PREG_LEN + M_Ht_In + MRAVE6 + SEX + BMI + WTGAIN_PER + 
+    PRIORLIVE + CIG_0 + NO_RISKS + RDMETH_REC + PREVIS + ATTEND + 
+    MBSTATE_REC + FRACE6 + PAY_REC + LD_INDL + FEDUC + NO_MMORB + 
+    BFACIL + FAGECOMB + NO_INFEC + RESTATUS + MEDUC + PRECARE + 
+    DMAR + BMI * PRECARE + WTGAIN_PER * PRECARE + PRECARE * MEDUC +
+    PREVIS * PREG_LEN + PREG_LEN * MEDUC + PRECARE * CIG_0 + CIG_0 * SEX +
+    CIG_0 * PREG_LEN, data = Train)
+
+no_CIG_PREG_LEN <- lm(DBWT ~ PREG_LEN + M_Ht_In + MRAVE6 + SEX + BMI + WTGAIN_PER + 
+    PRIORLIVE + CIG_0 + NO_RISKS + RDMETH_REC + PREVIS + ATTEND + 
+    MBSTATE_REC + FRACE6 + PAY_REC + LD_INDL + FEDUC + NO_MMORB + 
+    BFACIL + FAGECOMB + NO_INFEC + RESTATUS + MEDUC + PRECARE + 
+    DMAR + BMI * PRECARE + WTGAIN_PER * PRECARE + PRECARE * MEDUC +
+    PREVIS * PREG_LEN + PREG_LEN * MEDUC + PRECARE * CIG_0 + CIG_0 * SEX +
+    PRECARE * PREG_LEN, data = Train)
+
+# F-test on each interaction term
+anova(no_BMI_PRECARE, full.lm) # p-value = 0.3041
+
+anova(no_WTGAIN_PER_PRECARE, full.lm) # p-value = 0.5564
+
+anova(no_PRECARE_MEDUC, full.lm) # p-value = 0.4754
+
+anova(no_PREVIS_PREG_LEN, full.lm) # p-value = 2.2e-16
+
+anova(no_PREG_LEN_MEDUC, full.lm) # p-value = 2.2e-16
+
+anova(no_PRECARE_CIG_0, full.lm) # p-value = 0.09273
+
+anova(no_CIG_0_SEX, full.lm) # p-value = 0.6727
+
+anova(no_PRECARE_PREG_LEN, full.lm) # p-value = 6.01e-09
+
+anova(no_CIG_PREG_LEN, full.lm) # p-value = 3.828e-05
+```
+
+```{r}
+# Final model
+final.lm <- lm(DBWT ~ PREG_LEN + M_Ht_In + MRAVE6 + SEX + BMI + WTGAIN_PER + 
+    PRIORLIVE + CIG_0 + NO_RISKS + RDMETH_REC + PREVIS + ATTEND + 
+    MBSTATE_REC + FRACE6 + PAY_REC + LD_INDL + FEDUC + NO_MMORB + 
+    BFACIL + FAGECOMB + NO_INFEC + RESTATUS + MEDUC + PRECARE + 
+    DMAR + PREVIS * PREG_LEN + PREG_LEN * MEDUC +
+    PRECARE * PREG_LEN + CIG_0 * PREG_LEN, data = Train)
+```
+
+```{r}
+# Model diagnostic
+plot(final.lm, col = rgb(red = 0, green = 0, blue = 0, alpha = 0.2))
+# Potential outliers: 76190, 94287, 45730
+
+# compute studentized residuals
+stu_res <- studres(final.lm)
+Train <- cbind(Train, stu_res)
+stu_res_dec <- stu_res[order(abs(stu_res), decreasing = TRUE)]
+
+# Check linearity and constant variance
+ggplot(Train, aes(x = BMI, y = stu_res)) +
+    geom_point(alpha = 0.1) +
+    geom_smooth()
+```
+
+```{r}
+# Outliers
+
+# test the largest studentized residual
+alpha = 0.5
+p_value <- pt(stu_res_dec[1], df = final.lm$df.residual - 1, lower.tail = FALSE)
+p_value < alpha / nrow(Train) # Bonferroni Correction
+
+# check observations with top 5 largest studentized residuals
+Train[head(names(stu_res_dec)),]
+```
+```{r}
+# Influential Points
+Train[c(16202, 61480, 49132),]
+```
+
+
+
+```{r}
+# Model Interpretation (Causual Inference)
+final_test.lm <- lm(DBWT ~ PREG_LEN + M_Ht_In + MRAVE6 + SEX + BMI + WTGAIN_PER + 
+    PRIORLIVE + CIG_0 + NO_RISKS + RDMETH_REC + PREVIS + ATTEND + 
+    MBSTATE_REC + FRACE6 + PAY_REC + LD_INDL + FEDUC + NO_MMORB + 
+    BFACIL + FAGECOMB + NO_INFEC + RESTATUS + MEDUC + PRECARE + 
+    DMAR + PREVIS * PREG_LEN + PREG_LEN * MEDUC +
+    PRECARE * PREG_LEN + CIG_0 * PREG_LEN, data = Test)
+
+summary(final_test.lm)
+```
+
+```{r}
+# Model Prediction
+MSE.train <- mean(final.lm$residuals ^ 2)
+pred.test <- predict(final.lm, Test)
+MSE.test <- mean((pred.test - Test$DBWT) ^ 2)
+MSE.train
+MSE.test
+
+true.test <- Test$DBWT
+test.pred.df <- data.frame(cbind(true.test, pred.test))
+ggplot(test.pred.df, aes(x = true.test, y = pred.test)) +
+  geom_point()
+
+# prediction intervals of five points
+five_samples <- Test %>% sample_n(5, replace = TRUE)
+predict(final_test.lm, five_samples, interval = "prediction")
+```
+
