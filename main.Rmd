@@ -1,5 +1,8 @@
 ---
-output: pdf_document
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
 ---
 
 ```{r setup, include=FALSE}
@@ -10,6 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(dplyr)
 library(ggplot2)
 library(MASS)
+library(car)
 ```
 
 ```{r}
@@ -192,6 +196,7 @@ back_BIC.cv = mean((residuals(backward.BIC) / (1 - hatvalues(backward.BIC))) ^ 2
 which.min(c(for_AIC.cv, back_AIC.cv, for_BIC.cv, back_BIC.cv))
 ```
 
+
 ```{r, eval=FALSE}
 # Add interaction terms by F-test
 full.lm <- lm(DBWT ~ PREG_LEN + M_Ht_In + MRAVE6 + SEX + BMI + WTGAIN_PER + 
@@ -202,96 +207,8 @@ full.lm <- lm(DBWT ~ PREG_LEN + M_Ht_In + MRAVE6 + SEX + BMI + WTGAIN_PER +
     PREVIS * PREG_LEN + PREG_LEN * MEDUC + PRECARE * CIG_0 + CIG_0 * SEX +
     PRECARE * PREG_LEN + CIG_0 * PREG_LEN, data = Train)
 
-no_BMI_PRECARE <- lm(DBWT ~ PREG_LEN + M_Ht_In + MRAVE6 + SEX + BMI + WTGAIN_PER + 
-    PRIORLIVE + CIG_0 + NO_RISKS + RDMETH_REC + PREVIS + ATTEND + 
-    MBSTATE_REC + FRACE6 + PAY_REC + LD_INDL + FEDUC + NO_MMORB + 
-    BFACIL + FAGECOMB + NO_INFEC + RESTATUS + MEDUC + PRECARE + 
-    DMAR  + WTGAIN_PER * PRECARE + PRECARE * MEDUC +
-    PREVIS * PREG_LEN + PREG_LEN * MEDUC + PRECARE * CIG_0 + CIG_0 * SEX +
-    PRECARE * PREG_LEN + CIG_0 * PREG_LEN, data = Train)
-
-no_WTGAIN_PER_PRECARE <- lm(DBWT ~ PREG_LEN + M_Ht_In + MRAVE6 + SEX + BMI + WTGAIN_PER + 
-    PRIORLIVE + CIG_0 + NO_RISKS + RDMETH_REC + PREVIS + ATTEND + 
-    MBSTATE_REC + FRACE6 + PAY_REC + LD_INDL + FEDUC + NO_MMORB + 
-    BFACIL + FAGECOMB + NO_INFEC + RESTATUS + MEDUC + PRECARE + 
-    DMAR + BMI * PRECARE +  PRECARE * MEDUC +
-    PREVIS * PREG_LEN + PREG_LEN * MEDUC + PRECARE * CIG_0 + CIG_0 * SEX +
-    PRECARE * PREG_LEN + CIG_0 * PREG_LEN, data = Train)
-
-no_PRECARE_MEDUC <- lm(DBWT ~ PREG_LEN + M_Ht_In + MRAVE6 + SEX + BMI + WTGAIN_PER + 
-    PRIORLIVE + CIG_0 + NO_RISKS + RDMETH_REC + PREVIS + ATTEND + 
-    MBSTATE_REC + FRACE6 + PAY_REC + LD_INDL + FEDUC + NO_MMORB + 
-    BFACIL + FAGECOMB + NO_INFEC + RESTATUS + MEDUC + PRECARE + 
-    DMAR + BMI * PRECARE + WTGAIN_PER * PRECARE +
-    PREVIS * PREG_LEN + PREG_LEN * MEDUC + PRECARE * CIG_0 + CIG_0 * SEX +
-    PRECARE * PREG_LEN + CIG_0 * PREG_LEN, data = Train)
-
-no_PREVIS_PREG_LEN <- lm(DBWT ~ PREG_LEN + M_Ht_In + MRAVE6 + SEX + BMI + WTGAIN_PER + 
-    PRIORLIVE + CIG_0 + NO_RISKS + RDMETH_REC + PREVIS + ATTEND + 
-    MBSTATE_REC + FRACE6 + PAY_REC + LD_INDL + FEDUC + NO_MMORB + 
-    BFACIL + FAGECOMB + NO_INFEC + RESTATUS + MEDUC + PRECARE + 
-    DMAR + BMI * PRECARE + WTGAIN_PER * PRECARE + PRECARE * MEDUC +
-    PREG_LEN * MEDUC + PRECARE * CIG_0 + CIG_0 * SEX +
-    PRECARE * PREG_LEN + CIG_0 * PREG_LEN, data = Train)
-
-no_PREG_LEN_MEDUC <- lm(DBWT ~ PREG_LEN + M_Ht_In + MRAVE6 + SEX + BMI + WTGAIN_PER + 
-    PRIORLIVE + CIG_0 + NO_RISKS + RDMETH_REC + PREVIS + ATTEND + 
-    MBSTATE_REC + FRACE6 + PAY_REC + LD_INDL + FEDUC + NO_MMORB + 
-    BFACIL + FAGECOMB + NO_INFEC + RESTATUS + MEDUC + PRECARE + 
-    DMAR + BMI * PRECARE + WTGAIN_PER * PRECARE + PRECARE * MEDUC +
-    PREVIS * PREG_LEN + PRECARE * CIG_0 + CIG_0 * SEX +
-    PRECARE * PREG_LEN + CIG_0 * PREG_LEN, data = Train)
-
-no_PRECARE_CIG_0 <- lm(DBWT ~ PREG_LEN + M_Ht_In + MRAVE6 + SEX + BMI + WTGAIN_PER + 
-    PRIORLIVE + CIG_0 + NO_RISKS + RDMETH_REC + PREVIS + ATTEND + 
-    MBSTATE_REC + FRACE6 + PAY_REC + LD_INDL + FEDUC + NO_MMORB + 
-    BFACIL + FAGECOMB + NO_INFEC + RESTATUS + MEDUC + PRECARE + 
-    DMAR + BMI * PRECARE + WTGAIN_PER * PRECARE + PRECARE * MEDUC +
-    PREVIS * PREG_LEN + PREG_LEN * MEDUC + CIG_0 * SEX +
-    PRECARE * PREG_LEN + CIG_0 * PREG_LEN, data = Train)
-
-no_CIG_0_SEX <- lm(DBWT ~ PREG_LEN + M_Ht_In + MRAVE6 + SEX + BMI + WTGAIN_PER + 
-    PRIORLIVE + CIG_0 + NO_RISKS + RDMETH_REC + PREVIS + ATTEND + 
-    MBSTATE_REC + FRACE6 + PAY_REC + LD_INDL + FEDUC + NO_MMORB + 
-    BFACIL + FAGECOMB + NO_INFEC + RESTATUS + MEDUC + PRECARE + 
-    DMAR + BMI * PRECARE + WTGAIN_PER * PRECARE + PRECARE * MEDUC +
-    PREVIS * PREG_LEN + PREG_LEN * MEDUC + PRECARE * CIG_0 +
-    PRECARE * PREG_LEN + CIG_0 * PREG_LEN, data = Train)
-
-no_PRECARE_PREG_LEN <- lm(DBWT ~ PREG_LEN + M_Ht_In + MRAVE6 + SEX + BMI + WTGAIN_PER + 
-    PRIORLIVE + CIG_0 + NO_RISKS + RDMETH_REC + PREVIS + ATTEND + 
-    MBSTATE_REC + FRACE6 + PAY_REC + LD_INDL + FEDUC + NO_MMORB + 
-    BFACIL + FAGECOMB + NO_INFEC + RESTATUS + MEDUC + PRECARE + 
-    DMAR + BMI * PRECARE + WTGAIN_PER * PRECARE + PRECARE * MEDUC +
-    PREVIS * PREG_LEN + PREG_LEN * MEDUC + PRECARE * CIG_0 + CIG_0 * SEX +
-    CIG_0 * PREG_LEN, data = Train)
-
-no_CIG_PREG_LEN <- lm(DBWT ~ PREG_LEN + M_Ht_In + MRAVE6 + SEX + BMI + WTGAIN_PER + 
-    PRIORLIVE + CIG_0 + NO_RISKS + RDMETH_REC + PREVIS + ATTEND + 
-    MBSTATE_REC + FRACE6 + PAY_REC + LD_INDL + FEDUC + NO_MMORB + 
-    BFACIL + FAGECOMB + NO_INFEC + RESTATUS + MEDUC + PRECARE + 
-    DMAR + BMI * PRECARE + WTGAIN_PER * PRECARE + PRECARE * MEDUC +
-    PREVIS * PREG_LEN + PREG_LEN * MEDUC + PRECARE * CIG_0 + CIG_0 * SEX +
-    PRECARE * PREG_LEN, data = Train)
-
-# F-test on each interaction term
-anova(no_BMI_PRECARE, full.lm) # p-value = 0.3041
-
-anova(no_WTGAIN_PER_PRECARE, full.lm) # p-value = 0.5564
-
-anova(no_PRECARE_MEDUC, full.lm) # p-value = 0.4754
-
-anova(no_PREVIS_PREG_LEN, full.lm) # p-value = 2.2e-16
-
-anova(no_PREG_LEN_MEDUC, full.lm) # p-value = 2.2e-16
-
-anova(no_PRECARE_CIG_0, full.lm) # p-value = 0.09273
-
-anova(no_CIG_0_SEX, full.lm) # p-value = 0.6727
-
-anova(no_PRECARE_PREG_LEN, full.lm) # p-value = 6.01e-09
-
-anova(no_CIG_PREG_LEN, full.lm) # p-value = 3.828e-05
+# Type II Anova
+Anova(full.lm)
 ```
 
 ```{r}
@@ -300,7 +217,7 @@ final.lm <- lm(DBWT ~ PREG_LEN + M_Ht_In + MRAVE6 + SEX + BMI + WTGAIN_PER +
     PRIORLIVE + CIG_0 + NO_RISKS + RDMETH_REC + PREVIS + ATTEND + 
     MBSTATE_REC + FRACE6 + PAY_REC + LD_INDL + FEDUC + NO_MMORB + 
     BFACIL + FAGECOMB + NO_INFEC + RESTATUS + MEDUC + PRECARE + 
-    DMAR + PREVIS * PREG_LEN + PREG_LEN * MEDUC +
+    DMAR + PREVIS * PREG_LEN + PREG_LEN * MEDUC + CIG_0 * PRECARE +
     PRECARE * PREG_LEN + CIG_0 * PREG_LEN, data = Train)
 ```
 
@@ -337,18 +254,18 @@ Train[c(16202, 61480, 49132),]
 ```
 
 
-
 ```{r}
 # Model Interpretation (Causual Inference)
 final_test.lm <- lm(DBWT ~ PREG_LEN + M_Ht_In + MRAVE6 + SEX + BMI + WTGAIN_PER + 
     PRIORLIVE + CIG_0 + NO_RISKS + RDMETH_REC + PREVIS + ATTEND + 
     MBSTATE_REC + FRACE6 + PAY_REC + LD_INDL + FEDUC + NO_MMORB + 
     BFACIL + FAGECOMB + NO_INFEC + RESTATUS + MEDUC + PRECARE + 
-    DMAR + PREVIS * PREG_LEN + PREG_LEN * MEDUC +
+    DMAR + PREVIS * PREG_LEN + PREG_LEN * MEDUC + CIG_0 * PRECARE +
     PRECARE * PREG_LEN + CIG_0 * PREG_LEN, data = Test)
 
 summary(final_test.lm)
 ```
+
 
 ```{r}
 # Model Prediction
