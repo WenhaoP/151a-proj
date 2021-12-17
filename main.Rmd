@@ -31,13 +31,18 @@ library(gridExtra)
 ```
 
 # Introduction
+\vspace{-2mm}
 Baby’s mass is correlated with mortality risk and potential future developmental problems. For example, [researchers in Denmark](https://www.reuters.com/article/us-health-iq-birth-weight/birth-weight-may-impact-intelligence-throughout-life-idUSKCN18E29J) found that babies with birth weights of less than 5 pounds are more likely to experience health complications and even a lower intelligence quotient as children. Thus, it makes sense for healthcare workers and parents to want to predict a baby's weight based on current information. Intuitively speaking, a baby's mass could be predicted by a lot of factors such as the health of the parents, the sex of the baby, the mother’s pregnancy records, etc. In this project, we aim to use linear models to answer the following two questions regarding the baby’s weight: (1) How does intervening a pregnant woman’s living habits or behaviors affect her baby’s birth weight in the future? (2) Given the information about an expecting family, what is our best prediction of their baby’s weight?
 
 The first question is more related to causal inference, and its answer could help doctors give suggestions to a pregnant woman for delivering a normally weighted baby. The second one is more related to prediction, and its answer could help doctors conjecture a baby’s weight right before delivery.
 
+\vspace{-3mm}
+
 # Data Description
-```{r, eval = FALSE}
+\vspace{-2mm}
+```{r}
 birth <- read.csv("data/US_births(2018).csv")
+
 ```
 This dataset was taken from the [National Center for Health Statistics](https://www.cdc.gov/nchs/data_access/vitalstatsonline.htm), and contains information about 3.8 million childbirths in the US in 2018. There are 55 columns, so we grouped them into the following categories:  
 
@@ -49,9 +54,12 @@ This dataset was taken from the [National Center for Health Statistics](https://
 
 The [User Guide](https://ftp.cdc.gov/pub/Health_Statistics/NCHS/Dataset_Documentation/DVS/natality/UserGuide2018-508.pdf) on the website contains the detailed explanations of each column. We will use the baby birth weight column (`DBWT`) as the response variable, and all other variables will be used as explanatory variables. 
 
+\vspace{-3mm}
+
 # Data Preprocessing
-```{r, eval = FALSE}
-# Remove missing values
+\vspace{-2mm}
+```{r}
+# Removing missing values
 
 # remove missing values in the response variable
 clean_birth <- subset(birth, DBWT != 9999)
@@ -74,13 +82,11 @@ clean_birth <- clean_birth %>% filter(!is.na(DMAR))
 clean_birth <- subset(clean_birth, DLMP_YY != 9999 & DLMP_MM != 99)
 clean_birth <- subset(clean_birth, PWgt_R != 999  & WTGAIN != 99)
 clean_birth <- subset(clean_birth, ILLB_R != 999)
+
 ```
 
-```{r, eval = FALSE}
-nrow(clean_birth)
-```
 
-```{r, eval = FALSE}
+```{r}
 # Feature engineering
 
 # estimate pregnancy length
@@ -115,9 +121,10 @@ clean_birth$PRIORLIVE <- ifelse(clean_birth$PRIORLIVE > 0, TRUE, FALSE)
 
 # compute first time live birth
 clean_birth$FIRST_BIRTH <- ifelse(clean_birth$ILLB_R == 888, TRUE, FALSE)
+
 ```
 
-```{r, eval = FALSE}
+```{r}
 # Reduce the dimensionality of the dataset
 
 # drop columns where >99% entries are the same
@@ -130,9 +137,10 @@ clean_birth <- clean_birth %>% dplyr::select(!c(WTGAIN, PWgt_R, DWgt_R, DOB_MM,
                                    DLMP_MM, PAY, MHISPX, MRACE15,
                                    MRACE31, MRACEIMP, FHISPX, FRACE15,
                                    FRACE31, RF_CESARN, ILOP_R, ILP_R, ILLB_R))
+
 ```
 
-```{r, eval = FALSE}
+```{r}
 # Factorize categorical variables
 clean_birth <- clean_birth %>% mutate_if(is.character, as.factor)
 clean_birth <- clean_birth %>% mutate_if(is.logical, as.factor)
@@ -144,11 +152,11 @@ clean_birth <- clean_birth %>% mutate(ATTEND = factor(ATTEND), BFACIL = factor(B
                                   NO_RISKS = factor(NO_RISKS), PAY_REC = factor(PAY_REC),
                                   PRECARE = factor(PRECARE), RDMETH_REC = factor(RDMETH_REC),
                                   RESTATUS = factor(RESTATUS))
+
 ```
 
 
-```{r, eval = FALSE}
-
+```{r}
 # Subsample datasets
 set.seed(151)
 EDA_size = 3000
@@ -157,19 +165,7 @@ Test_size = 100000
 EDA_df <- clean_birth %>% slice_sample(n = EDA_size, replace = TRUE)
 Train <- clean_birth %>% slice_sample(n = Train_size, replace = TRUE)
 Test <- clean_birth %>% slice_sample(n = Test_size, replace = TRUE)
-```
 
-
-```{r}
-# TODO: REMOVE THIS
-EDA_df <- read.csv("data/EDA.csv")
-Train <- read.csv("data/Train.csv")
-Test <- read.csv("data/Test.csv")
-
-EDA_df$PRECARE <- factor(EDA_df$PRECARE)
-Train$PRECARE <- factor(Train$PRECARE)
-Test$PRECARE <- factor(Test$PRECARE)
-  
 ```
 
 We first propose that due to the excessive size of the original dataset, 3.8 million observations, we plan to randomly subsample three subsets, one with 5000 observations and two with 100000 observations, with replacement as datasets for EDA, training, and testing. This plan balances the computational cost of the analysis and the complexity of our dataset well. We conduct this subsampling plan at the end of data preprocessing.
@@ -219,6 +215,7 @@ fig1b <-
 DBWT_sym = (quantile(EDA_df$DBWT, 0.75) - median(EDA_df$DBWT)) /
   (median(EDA_df$DBWT) - quantile(EDA_df$DBWT, 0.25))
 
+# Main effects
 fig2a <- ggplot(EDA_df, aes(x = WTGAIN_PER, y = DBWT)) +
   geom_point(alpha = 0.2) +
   geom_smooth() +
@@ -236,6 +233,7 @@ fig2b <- ggplot(EDA_df, aes(x = CIG_0, y = DBWT)) +
         plot.title = element_text(hjust = 0.5), 
         plot.caption = element_text(size = 8))
 
+# Binarize PRECARE
 fig3a <- ggplot(EDA_df, aes(x = PRECARE, y = DBWT)) +
   geom_boxplot() +
   labs(title = "DBWT vs. PRECARE",
@@ -244,7 +242,6 @@ fig3a <- ggplot(EDA_df, aes(x = PRECARE, y = DBWT)) +
         plot.title = element_text(hjust = 0.5), 
         plot.caption = element_text(size = 8))
 
-# Binarize PRECARE
 EDA_df$PRECARE <- ifelse(EDA_df$PRECARE != 0, TRUE, FALSE)
 Train$PRECARE <- ifelse(Train$PRECARE != 0, TRUE, FALSE)
 Test$PRECARE <- ifelse(Test$PRECARE != 0, TRUE, FALSE)
@@ -257,12 +254,11 @@ fig3b <- ggplot(EDA_df, aes(x = PRECARE, y = DBWT)) +
         plot.title = element_text(hjust = 0.5), 
         plot.caption = element_text(size = 8))
 
-# # Interactions
-
+# Interactions
 fig4a <- ggplot(EDA_df, aes(x = PRECARE, y = DBWT)) +
   geom_boxplot(aes(fill = SEX)) +
   labs(title = "DBWT vs. PRECARE", 
-       caption = "Figure 4b: Interaction between sex and prenatal care status")  +
+       caption = "Figure 4a: Interaction between sex and prenatal care status")  +
   theme(
     text = element_text(size = 10),
     plot.title = element_text(hjust = 0.5),
@@ -281,6 +277,7 @@ fig4b <- ggplot(EDA_df, aes(x = BMI, y = DBWT)) +
     plot.caption = element_text(size = 8),
     legend.position = "bottom"
   )
+
 ```
 
 ```{r, fig.width = 8, fig.height = 3}
@@ -295,7 +292,7 @@ grid.arrange(fig2a, fig2b, ncol = 2)
 
 We next examined bivariate relationships between our response variable and each explanatory variable in our dataset. In Figure 2a, we saw that as the percentage of weight gained due to pregnancy increases, the birth weight tends to increase. We also observed that `CIG_0` may also be an important explanatory variable to include in our model, since from the box plot in Figure 2b, we saw that the 1st quartile, median, and 3rd quartile of birth weight are all lower if the mother smokes, than if she does not. In Figure 3a, when plotting birth weight against the prenatal care status of the mother, we found that the distributions of birth weight seemed to be most different between mothers who didn’t receive prenatal care and mothers who did. This suggested that the most important difference would be observed when we binarize the explanatory variable for the mother’s prenatal care status. From Figure 3b, we saw that this holds, and we therefore binarized the mother’s prenatal care status for downstream analysis.
 
-```{r, fig.width = 8, fig.height = 3}
+```{r, fig.width = 8, fig.height = 2.5}
 grid.arrange(fig3a, fig3b, ncol = 2)
 ```
 
@@ -305,6 +302,7 @@ In Figure 4b, we observed a possible interaction between the mother’s prenatal
 
 ```{r, fig.width = 8, fig.height = 4}
 grid.arrange(fig4a, fig4b, ncol = 2)
+
 ```
 
 # Model Selection
@@ -318,7 +316,7 @@ biggest.model <- lm(DBWT ~ ., data = Train)
 Train <- Train %>% dplyr::select(!c(RF_CESAR))
 biggest.model <- lm(DBWT ~ ., data = Train)
 min.model <- lm(DBWT ~ 1, data = Train)
-# summary(biggest.model)
+
 # Forward selection with BIC
 forward.BIC = step(min.model, direction="forward", scope = formula(biggest.model),
                    k = log(nrow(Train)), trace = 0)
@@ -373,7 +371,7 @@ final.lm <- lm(DBWT ~ PREG_LEN + M_Ht_In + MRAVE6 + SEX + BMI + WTGAIN_PER +
     PRECARE * PREG_LEN + CIG_0 * PREG_LEN, data = Train)
 
 ```
-We first fit the fullest model with only the main effect terms, which contains 30 explanatory variables or 68 regressors. Such a complicated model with so many regressors is not desired for prediction or causal inference because it will tend to overfit on the training data and therefore generalize poorly on new datasets, even if drawn from the same distribution. Also, such a model would require us to collect lots of information to predict, which will limit the usability of the model in a realistic setting. Moreover, such a model is hard to interpret for causal inference. Thus, we conduct model selection to select a simpler model.
+We first fit the fullest model with only the main effect terms, which contains 30 explanatory variables or 68 regressors. Such a complicated model with so many regressors is not desired for prediction or causal inference because it will tend to overfit on the training data and therefore generalize poorly on new datasets, even if drawn from the same distribution. Also, such a model would require us to collect lots of information to predict, which will limit the usability of the model in a realistic setting. Moreover, such a model is hard to interpret for causal inference. Thus, we conducted model selection to select a simpler model.
 
 We first removed explanatory variables introducing singularity, which have fitted coefficients `NA`. Next, we constructed four models using four different approaches: forward/backward selection with AIC/BIC by `step` function and then select the one with the lowest leave-one-out cross-validation (LOOCV) error. Both AIC and BIC measure the in-sample fitness of a model, while BIC penalizes the model size more when the sample size is large. Lower AIC or BIC in value means a better model. We chose forward and backward selection instead of all subset selection because of the large number of explanatory variables, which makes all subset selection computationally infeasible. We chose the `step` function because it adds or drops categorical variables only as an entire unit instead of splitting them up into unconnected dummy regressors. Ideally, we hope that these four models using different criteria and search strategies would explore diverse model choices, so the final one selected by LOOCV error is the most descriptive.
 
@@ -381,6 +379,7 @@ It turns out that both the models returned by forward and backward selection wit
 
 ```{r}
 formula(final.lm)
+
 ```
 
 # Model Diagnostics
@@ -397,9 +396,9 @@ plot(final.lm, col = rgb(red = 0, green = 0, blue = 0, alpha = 0.15))
 ## Linear Modeling Assumptions
 First, we verified our modeling assumptions using various diagnostic plots. We skipped the independent noise assumption because we are not dealing with geospatial and time series data, so we could safely assume that noises are independent of each other. 
 
-When plotting the residuals against the fitted values (Figure 5), although the heavier cluster seems to have smaller studentized residuals, the difference is very slight, so we said that we do not see a clear trend in the spread of residuals as a function of fitted values, which supports our constant variance assumption. Additionally, because the residuals do not show any clear non-linear pattern, the plot supports our linearity assumption. To help us verify normality assumptions, we also plotted a quantile-comparison plot of the standardized residuals against the normal distribution (Figure 5). Examining the shape of the Q-Q plot, we see that the distribution of the residuals has slightly heavy tails, indicating a potential violation of this assumption. Although we can use case bootstrapping to alleviate this issue, we chose to continue with our original data since the issue is not severe. In the scale-location plot, the red line is roughly horizontal, providing additional evidence for the validity of the constant variance assumption (Figure 5). 
+When plotting the residuals against the fitted values (Figure 5), although the heavier cluster seems to have smaller studentized residuals, the difference is very slight, so we said that we do not see a clear trend in the spread of residuals as a function of fitted values. This supports our constant variance assumption. Additionally, because the residuals do not show any clear non-linear pattern, the plot supports our linearity assumption. To help us verify normality assumptions, we also plotted a quantile-comparison plot of the standardized residuals against the normal distribution (Figure 5). Examining the shape of the Q-Q plot, we observed that the distribution of the residuals has slightly heavy tails, indicating a potential violation of this assumption. Although we can use case bootstrapping to alleviate this issue, we chose to continue with our original data since the issue is not severe. In the scale-location plot, the red line is roughly horizontal, providing additional evidence for the validity of the constant variance assumption (Figure 5). 
 
-Finally, we plot the studentized residuals versus one of the explanatory variables, BMI, and look for any patterns (Figure 6a). The studentized residuals appear to be mostly centered around 0 with no clear pattern, which supports our linearity assumption. However, we notice some downward curvature towards the extreme values of BMI, indicating a possible slight violation of our linearity assumption. Additionally, the spread of the studentized residuals does not seem to have a strong dependence on BMI, thus demonstrating homoscedasticity and indicating support for our constant variance assumption. 
+Finally, we plotted the studentized residuals versus one of the explanatory variables, BMI, and look for any patterns (Figure 6a). The studentized residuals appear to be mostly centered around 0 with no clear pattern, which supports our linearity assumption. However, we notice some downward curvature towards the extreme values of BMI, indicating a possible slight violation of our linearity assumption. Additionally, the spread of the studentized residuals does not seem to have a strong dependence on BMI, thus demonstrating homoscedasticity and indicating support for our constant variance assumption. 
 
 ```{r}
 # compute studentized residuals
@@ -435,7 +434,7 @@ Train[c(16202, 61480, 49132),]
 ```
 Next, we detected and analyzed unusual data points that may significantly affect the fitted coefficients of our model. In our diagnostic plots, we observed a few unusual data points, possibly outliers, with indices 76190, 94287, and 45730 in Figure 5. Sample `76190` has the largest studentized residual `10.82` in magnitude. Its p-value is much smaller than `0.05` with Bonferroni correction. This observation seems to imply that our model fails to capture some important characteristics of the data (Fox, p267), but we found that the birth weight `DBWT` of this sample is `7940` which is extremely rare in reality. Thus, we claim that this outlier is due to an unpredictable event instead of the model defect.   
 
-To identify the influential data points, we checked if there is any point outside the contour of the Cook’s distance equal to 0.5  in the residuals vs. leverage plot. A larger Cook’s distance means a larger influence of a data point on the coefficient estimation. As we cannot even see the contour in the plot, we claim that no data point is highly influential.
+To identify the influential data points, we checked if there is any point outside the contour of the Cook’s distance equal to 0.5 in the residuals vs. leverage plot. A larger Cook’s distance means a larger influence of a data point on the coefficient estimation. As we cannot even see the contour in the plot, we claim that no data point is highly influential.
 
 It is worth noting that all the diagnostic plots suffer from overplotting due to large training data size. Looking at Figure 5, there might be underlying patterns in the large cluster on the right (from fitted values = 2500 to 4000) that we cannot see. Thus, we might want to zoom in on different parts of the plot for future study.
 
@@ -453,13 +452,11 @@ final_test.lm <- lm(DBWT ~ PREG_LEN + M_Ht_In + MRAVE6 + SEX + BMI + WTGAIN_PER 
 
 ```
 
-To avoid the issue of post-selection inference, we re-fit the model to the test set. We used the coefficients of this new model to answer our causal inference question. Because we aim to change a pregnant woman’s behavior to control her baby’s weight, we do not need to interpret the coefficients of variables that are almost impossible to intervene, such as race, education, and age. 
+To avoid the issue of post-selection inference, we re-fit the model to the test set. We used the coefficients of this new model (Appendix) to answer our causal inference question. Because we aimed to change a pregnant woman’s behavior to control her baby’s weight, we did not need to interpret the coefficients of variables that are almost impossible to intervene, such as race, education, and age. 
 
-Technically, each fitted coefficient can be interpreted as “the average difference in `DBWT` associated with one-unit change in the variable if we can hold all other variables constant.” For example, the coefficient of `BMI` is `17.67`, so we would expect that on average, if we can hold all other regressors constant, a unit increase in a mother’s pre-pregnancy BMI will be associated with an increase of baby birth weight by 17.67 grams. In this way, we can understand the effect of the intervention on each variable quantitatively.  However, the interpretation becomes complicated when interactions between categorical variables exist, because changing the main effect regressor will change the interaction regressor simultaneously. Thus, depending on the regressor, we may have to consider multiple coefficients at the same time, although we can make analogous statements to “average difference associated with change” at the beginning. 
+Technically, each fitted coefficient can be interpreted as “the average difference in `DBWT` associated with one-unit change in the variable if we hold all other variables constant.” For example, the coefficient of `BMI` is `17.67`, so we would expect that on average, if we can hold all other regressors constant, a unit increase in a mother’s pre-pregnancy BMI will be associated with an increase of baby birth weight by 17.67 grams. In this way, we can understand the effect of the intervention on each variable quantitatively.  However, the interpretation becomes complicated when interactions between categorical variables exist, because changing the main effect regressor will change the interaction regressor simultaneously. Thus, depending on the regressor, we may have to consider multiple coefficients at the same time, although we can make analogous statements to “average difference associated with change” at the beginning. 
 
-Therefore, if we naively use our model for causal inference, if we predict that a mother will deliver a baby with a dangerously low weight, we could suggest that the mother follows a healthy diet plan to increase her BMI. According to the model coefficients, increasing the mother’s BMI should increase the weight of the baby. Similarly, the negative coefficient on `CIG_0TRUE` and all interaction terms that include `CIG_0TRUE` would lead us to claim that a mother should not smoke to ensure that her baby will be delivered with a healthy weight.
-
-To prioritize intervention strategies based on our model, we could interpret the relative significance of explanatory variables. For all intervenable numerical variables, we could compute standardized coefficients and compare the corresponding magnitudes. For categorical variables or interaction terms, we could rely on the significance of the coefficients as determined by incremental F-tests. 
+If we naively use our model for causal inference, if we predict that a mother will deliver a baby with a dangerously low weight, we could suggest that the mother follows a healthy diet plan to increase her BMI. According to the model coefficients, increasing the mother’s BMI should increase the weight of the baby. Similarly, the negative coefficient on `CIG_0TRUE` and all interaction terms that include `CIG_0TRUE` would lead us to claim that a mother should not smoke to ensure that her baby will be delivered with a healthy weight. Then, to prioritize intervention strategies based on our model, we could interpret the relative significance of explanatory variables. For all intervenable numerical variables, we could compute standardized coefficients and compare the corresponding magnitudes. For categorical variables or interaction terms, we could rely on the significance of the coefficients as determined by incremental F-tests. 
 
 However, the possibility of confounding variables can undermine the credibility of our causal inference outcome. For example, during EDA, we saw that mothers that underwent prenatal care delivered higher weight babies. However, based on the coefficients of the fitted model, we observed that undergoing prenatal care is associated with *lower* delivered baby weights for all mothers except those with estimated pregnancy lengths longer than 10 months (making up only 0.975% of the mothers in the test dataset). This indicates that the underlying true relationship between an explanatory variable and response variable may be completely different from the one explained by our model due to the existence of confounding variables. We will discuss more about confounding variables in the Discussion section. Therefore, because we have not properly controlled for confounding variables in our dataset, we cannot reliably use our model for causal inference. A more careful experimental design for collecting our data would be necessary for eliminating confounding variables. For example, if we want to further explore causal inference, we might want to have a control group.
 
@@ -474,12 +471,19 @@ MSE.test <- mean((pred.test - Test$DBWT) ^ 2)
 true.test <- Test$DBWT
 test.pred.df <- data.frame(cbind(true.test, pred.test))
 fig6b <- ggplot(test.pred.df, aes(x = true.test, y = pred.test)) +
-  geom_point()
+  geom_point(alpha = 0.1)
+
 ```
+
 
 ```{r, fig.width = 8, fig.height = 2}
 grid.arrange(fig6a, fig6b, ncol = 2)
+
 ```
+
+The final model has an adjusted $R^2$ of 0.3262 on the training set, which is decent given the complexity of our dataset and questions in a social study research. Our model achieves a mean squared error (MSE) of 223183.1 on the test set, compared with a MSE of 222923.6 on the training set. The relatively small difference between the train and test MSEs indicate that our model is not overfitting to the training set, implying that the model generalizes fairly well to the test set. 
+
+To further evaluate whether the model will predict future baby birth weights with high precision, we also examined the 95% prediction intervals of three randomly selected data points from the test set. Looking at the distribution of baby birth weights in Figure 1a, we see that the prediction intervals tend to be very wide relative to the entire distribution of values of `DBWT`, indicating that the model’s predictions are imprecise. Therefore, the model will likely predict future baby birth weights with low precision.
 
 ```{r}
 # prediction intervals of five points
@@ -487,11 +491,8 @@ five_samples <- Test %>% sample_n(3, replace = TRUE)
 predict(final_test.lm, five_samples, interval = "prediction")
 
 ```
-The final model has an adjusted R^2 of 0.3262 on the training set, which is decent given the complexity of our dataset and questions in a social study research. Our model achieves a mean squared error (MSE) of 223183.1 on the test set, compared with a MSE of 222923.6 on the training set. The relatively small difference between the train and test MSEs indicate that our model is not overfitting to the training set, implying that the model generalizes fairly well to the test set. 
 
-To further evaluate whether the model will predict future baby birth weights with high precision, we also examined the 95% prediction intervals of three randomly selected data points from the test set. Looking at the distribution of baby birth weights in Figure 1a, we see that the prediction intervals tend to be very wide relative to the entire distribution of values of `DBWT`, indicating that the model’s predictions are imprecise. Therefore, the model will likely predict future baby birth weights with low precision.
-
-We plotted the predicted v.s. actual values in Figure 6b. Clearly, we can see two clusters with very different centers. It may imply that our data is a mixture of samples from different populations. We will discuss this observation in detail in the next section.
+We also plotted the predicted v.s. actual values in Figure 6b. Clearly, we can see two clusters with very different centers. It may imply that our data is a mixture of samples from different populations. We will discuss this observation in detail in the next section.
 
 # Discussion
 The primary purpose of this project was to determine whether we can predict the birth weight of a baby given information about the expecting family, and which factors we can intervene with to change the baby’s birth weight. Therefore, we must consider the extent to which our linear model can be used for prediction and for causal inference.
@@ -505,10 +506,18 @@ As we discovered at the end of the last section, our dataset seems to contain di
 # Conclusion
 In this report, we explored data about child births in the United States in 2018 from the National Center for Health Statistics. Given a set of explanatory variables describing information about the baby’s parents, such as education status, BMI, and smoking history, we constructed linear models to predict a baby’s birth weight. Using this model, we wanted to determine possible interventions for a pregnant woman to alter the delivery weight of the baby, as well as to determine the extent to which the weight can be predicted based on the given information about the baby’s parents. However, from our analysis, we determined that the model is unsuited for causal inference. Furthermore, although the model does not overfit, our analysis demonstrated shortcomings in terms of precision when predicting birth weight. 
 
-For further analysis, we might explore imputation to minimize bias in our dataset. For numerical variables, we could replace the missing values by the mean. For categorical variables, we could replace the missing values by the mode. We may also leverage more sophisticated machine learning methods such as random forests, KNNs, or deep learning. 
+For further analysis, we might explore imputation to minimize bias in our dataset: for numerical variables, we could replace the missing values by the mean, and for categorical variables, we could replace the missing values by the mode. We may also leverage more sophisticated machine learning methods such as random forests, KNNs, or deep learning.  
+
+\newpage
+# References  
+- Centers for Disease Control and Prevention. (2021, December 3). *Data Access - Vital Statistics Online.* Centers for Disease Control and Prevention. Retrieved December 17, 2021, from https://www.cdc.gov/nchs/data_access/vitalstatsonline.htm  
+- Fox, J. (2016). *Applied regression analysis and generalized linear models.* SAGE.  
+- Rapaport, L. (2017, May 18). *Birth weight may impact intelligence throughout life.* Reuters. Retrieved December 17, 2021, from https://www.reuters.com/article/us-health-iq-birth-weight/birth-weight-may-impact-intelligence-throughout-life-idUSKCN18E29J  
+- ScienceDaily. (2019, May 1). *How both mother and baby genes affect birth weight.* ScienceDaily. Retrieved December 17, 2021, from https://www.sciencedaily.com/releases/2019/05/190501114600.htm  
+
 
 # Appendix
-## Final Model Summary
+## Final Causal Inference Model Summary
 ```{r, echo = TRUE}
 summary(final_test.lm)
 ```
